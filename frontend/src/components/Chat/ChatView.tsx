@@ -29,7 +29,7 @@ export const ChatView: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Mock backend function
+  // Handle chat submission with real API calls
   const handleChatSubmit = async (prompt: string, file?: File) => {
     // Set loading state
     setIsLoading(true);
@@ -44,24 +44,72 @@ export const ChatView: React.FC = () => {
     // Add user message to the conversation
     setMessages((prev) => [...prev, userMessage]);
 
-    // Simulate backend call (2-second delay)
-    await new Promise((res) => setTimeout(res, 2000));
+    try {
+      let data;
 
-    // Create mock agent response with audio
-    const agentMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'agent',
-      text: `[${selectedAgent}]: This is a simulated response to your query about: "${prompt}"${
-        file ? ` I received your file: ${file.name}` : ''
-      }`,
-      audioUrl: 'https://www.soundjay.com/buttons/beep-07a.mp3'
-    };
+      if (file) {
+        // Handle audio file upload
+        const formData = new FormData();
+        formData.append('file', file);
+        if (selectedAgent) {
+          formData.append('agent_id', selectedAgent);
+        }
 
-    // Add agent response to the conversation
-    setMessages((prev) => [...prev, agentMessage]);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/input/audio`, {
+          method: 'POST',
+          body: formData,
+        });
 
-    // Clear loading state
-    setIsLoading(false);
+        if (!response.ok) {
+          throw new Error('Failed to send audio');
+        }
+
+        data = await response.json();
+      } else {
+        // Handle text input
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/input/text`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agent_id: selectedAgent,
+            user_text: prompt,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send text');
+        }
+
+        data = await response.json();
+      }
+
+      // Create agent response with real data from API
+      const agentMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'agent',
+        text: data.reply_text,
+        audioUrl: data.audio_url,
+      };
+
+      // Add agent response to the conversation
+      setMessages((prev) => [...prev, agentMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      // Create error message for user
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'agent',
+        text: 'Sorry, there was an error processing your request. Please try again.',
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      // Clear loading state
+      setIsLoading(false);
+    }
   };
 
   return (
