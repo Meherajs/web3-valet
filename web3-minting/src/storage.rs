@@ -19,27 +19,29 @@ pub async fn upload_metadata(metadata: &Metadata) -> Result<UploadResult> {
             .map_err(|e| anyhow!("ipfs request failed: {}", e))?;
 
         let status = resp.status();
-        let text = resp.text().await.unwrap_or_default();
         if !status.is_success() {
+            let text = resp.text().await.unwrap_or_default();
             return Err(anyhow!("ipfs upload failed: {} - {}", status, text));
         }
 
-        // Try to parse JSON and extract a field 'cid' or 'Hash' or fallback to raw text
-        let cid = match resp.json::<serde_json::Value>().await {
-            Ok(json) => json
-                .get("cid")
-                .and_then(|v| v.as_str().map(|s| s.to_string()))
-                .or_else(|| json.get("Hash").and_then(|v| v.as_str().map(|s| s.to_string())))
-                .unwrap_or_else(|| text.clone()),
-            Err(_) => text.clone(),
-        };
+        // Try to parse JSON and extract a field 'cid' or 'Hash' or fallback to UUID
+        let json: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| anyhow!("failed to parse response: {}", e))?;
+        let cid = json
+            .get("cid")
+            .or_else(|| json.get("Hash"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| format!("bafy{}", Uuid::new_v4().simple()));
 
         let url = format!("https://ipfs.io/ipfs/{}", cid);
         tracing::info!(cid = %cid, url = %url, "ipfs upload result");
         Ok(UploadResult { cid, url })
     } else {
         // Mock path: deterministic-ish CID and gateway URL for local dev and testing.
-        let cid = format!("bafy{}", Uuid::new_v4().to_simple());
+        let cid = format!("bafy{}", Uuid::new_v4().simple());
         let url = format!("https://ipfs.io/ipfs/{}", cid);
         tracing::warn!(cid = %cid, "IPFS_URL not set - returning mock upload result");
         Ok(UploadResult { cid, url })

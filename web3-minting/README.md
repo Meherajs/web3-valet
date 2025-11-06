@@ -66,7 +66,7 @@ cargo build
 cargo run
 
 
-The service listens on http://localhost:8080 (by default) and exposes endpoints like /mint.
+The service listens on http://localhost:8081 (by default) and exposes endpoints like /mint.
 
 
 📝 License

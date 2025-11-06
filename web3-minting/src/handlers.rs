@@ -1,5 +1,5 @@
 use crate::models::{ErrorResponse, Metadata, MintRequest, MintResponse};
-use axum::{extract::Json, http::StatusCode, response::IntoResponse, Json as AxumJson};
+use axum::{http::StatusCode, response::IntoResponse, Json};
 
 pub async fn mint(Json(payload): Json<MintRequest>) -> impl IntoResponse {
     tracing::info!(request = ?payload, "/mint called");
@@ -16,8 +16,10 @@ pub async fn mint(Json(payload): Json<MintRequest>) -> impl IntoResponse {
         Ok(u) => u,
         Err(e) => {
             tracing::error!(error = %e, "metadata upload failed");
-            let body = ErrorResponse { error: format!("upload error: {}", e) };
-            return (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(body));
+            let body = ErrorResponse {
+                error: format!("upload error: {}", e),
+            };
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(body)).into_response();
         }
     };
 
@@ -32,8 +34,10 @@ pub async fn mint(Json(payload): Json<MintRequest>) -> impl IntoResponse {
         Ok(m) => m,
         Err(e) => {
             tracing::error!(error = %e, "mint call failed");
-            let body = ErrorResponse { error: format!("mint error: {}", e) };
-            return (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(body));
+            let body = ErrorResponse {
+                error: format!("mint error: {}", e),
+            };
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(body)).into_response();
         }
     };
 
@@ -44,5 +48,5 @@ pub async fn mint(Json(payload): Json<MintRequest>) -> impl IntoResponse {
     };
 
     tracing::info!(response = ?resp, "/mint completed");
-    (StatusCode::OK, AxumJson(resp))
+    (StatusCode::OK, Json(resp)).into_response()
 }
