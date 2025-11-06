@@ -1,0 +1,75 @@
+# Rust build artifacts
+**/target/
+**/Cargo.lock
+**/*.pdb
+
+# Environment and secrets
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Audio files (generated at runtime in mcp-api)
+mcp-api/public/audio/*.mp3
+mcp-api/public/audio/*.wav
+mcp-api/public/audio/*.ogg
+
+# Keep directory structure
+!mcp-api/public/audio/.gitkeep
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Documentation build
+**/target/doc
+
+# Test coverage
+tarpaulin-report.html
+cobertura.xml
+*.profraw
+*.profdata
+
+# Flamegraph and profiling
+flamegraph.svg
+perf.data
+perf.data.old
+
+# Node modules (if any JavaScript tooling is added)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python (if any Python scripts are added)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache and temporary directories
+.cache/
+tmp/
+temp/

@@ -1,0 +1,52 @@
+# Rust build artifacts
+/target
+Cargo.lock
+*.pdb
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Audio files (generated at runtime)
+/public/audio/*.mp3
+/public/audio/*.wav
+/public/audio/*.ogg
+
+# Keep the audio directory structure
+!/public/audio/.gitkeep
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Documentation build
+/target/doc
+
+# Test coverage
+tarpaulin-report.html
+cobertura.xml
+*.profraw
+*.profdata
+
+# Flamegraph
+flamegraph.svg
+perf.data
+perf.data.old
